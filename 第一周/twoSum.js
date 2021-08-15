@@ -7,12 +7,15 @@
  * 你可以按任意顺序返回答案。 
  */
  var twoSum = function(nums, target) {
+  // 创建一个map
   let map = new Map();
-  for (let i = 0;i < nums.length;i++) {
+  // 遍历nums
+  for (let i = 0; i < nums.length;i++) {
+    // 如果map 里面有 target - nums[i] 的值的话 就是return 相应的下标 否则将对应的值的下面存到map
     if (map.has(target - nums[i])) {
       return [i, map.get(target - nums[i])]
     } else {
-      map.set(nums[i], i);
+      map.set(nums[i], i)
     }
   }
 };
