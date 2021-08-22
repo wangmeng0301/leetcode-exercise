@@ -17,32 +17,49 @@
 // 深度优先搜索（DFS）
  var maxDepth = function(root) {
   if (!root) {
-    return null;
+    return 0;
   }
-  let left = maxDepth(root.left);
-  let right = maxDepth(root.right);
+  let left = maxDepth(root.left)
+  let right = maxDepth(root.right)
   return Math.max(left, right) + 1;
 };
 
 // 广度优先搜索（BFS）
+// const maxDepth = (root) => {
+//   if (!root) return 0;
+//   let queue = [root];
+//   let depth = 1;
+//   // 队列有长度的时候循环
+//   while(queue.length) {
+//     // 当前层节点的个数
+//     let leveSize = queue.length;
+//     // 节点依次出列
+//     for (let i = 0; i < leveSize;i++) {
+//       // 当前出列的节点
+//       let curr = queue.shift();
+//       // 如果节点有左孩子或右孩子就加到队列中，
+//       if (curr.left) queue.push(curr.left)
+//       if (curr.right) queue.push(curr.right)
+//     }
+//     // 当前层所有节点已经出列，如果队列不为空，说明有下一层节点，depth+1
+//     if (queue.length) depth++;
+//   }
+//   return depth
+// };
+
 const maxDepth = (root) => {
-  if (!root) return 0;
-  let queue = [root];
+  if (!root) return 0
   let depth = 1;
-  // 队列有长度的时候循环
-  while(queue.length) {
-    // 当前层节点的个数
-    let leveSize = queue.length;
-    // 节点依次出列
-    for (let i = 0; i < leveSize;i++) {
-      // 当前出列的节点
-      let curr = queue.shift();
-      // 如果节点有左孩子或右孩子就加到队列中，
-      if (curr.left) queue.push(curr.left)
-      if (curr.right) queue.push(curr.right)
+  let queqe = [root]
+  while(queqe.length) {
+    let size = queqe.length;
+    while(size > 0) {
+      let curr = queqe.shift();
+      if (curr.left) queqe.push(curr.left);
+      if (curr.right) queqe.push(curr.right);
+      size--;
     }
-    // 当前层所有节点已经出列，如果队列不为空，说明有下一层节点，depth+1
-    if (queue.length) depth++;
+    if (queqe.length) depth++;
   }
-  return depth
-};
+  return depth;
+}

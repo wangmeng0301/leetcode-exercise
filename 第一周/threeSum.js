@@ -29,30 +29,28 @@
 //   return Array.from(res);
 // };
 
-// var threeSum = function(nums) {
-//   if (nums.length <= 2) {
-//     return [];
-//   }
-//   nums.sort((a,b) => a - b);
-//   const map = {};  
-//   let res = [];
-//   // 三重循环 因为第二三重分别是从i+1 和 i + 2开始循环所有 可以 length - 1 和 -2
-//   for (let i = 0; i< nums.length - 2;i++) {
-//     for (let j = i + 1; j < nums.length - 1;j++) {
-//       for (let k = i + 2; k < nums.length;k++) {
-//         if (nums[i] + nums[j] === -nums[k]) {
-//           const sum = [nums[i], nums[j], nums[k]].sort((a, b) => a - b);
-//           if (!map[sum]) {
-//             map[sum] = true;
-//             res.push(sum);
-//           }
-//         }
-//       }
-//     }
-//   }
-
-//   return res;
-// };
+var threeSum = function(nums) {
+  if (nums.length <= 2) {
+    return []
+  }
+  const res = [];
+  nums.sort((a, b) => a - b);
+  let map = {};
+  for (let i = 0; i < nums.length - 2;i++) {
+    for (let j = i + 1; i < nums.length - 1;j++) {
+      for (let k = i + 2; i < nums.length;k++) {
+        if (nums[i] + nums[j] === -nums[k]) {
+          let sumArr = [nums[i], nums[j], nums[k]].sort((a, b) => a - b);
+          if (!map[sumArr]) {
+            res.push(sumArr)
+            map[sumArr] = true;
+          }
+        } 
+      }
+    }
+  }
+  return res;
+}
 
 
 // 双指针
@@ -65,69 +63,34 @@
 //   nums.sort((a, b) => a - b);
 //   // 遍历
 //   for (let i = 0; i< nums.length - 2;i++) {
-//     if (nums[i] > 0) break;// 如果当前数字大于0 则三数之和一定大于零
-//     if (i > 0 && nums[i] === nums[i - 1]) continue; // 去重
+//     if (nums[i] > 0) break; // 如果当前数字大于0 则三数之和一定大于零
+//     if (i > 0 && nums[i - 1] === nums[i]) continue;// 去重
 //     // 左指针是比i大1
-//     let L = i + 1;
-//     // 右指针是nums的长度
-//     let R = nums.length - 1;
+//     let l = i + 1
+//     // 右指针是nums的长度 -1 
+//     let r = nums.length - 1;
 //     // 左指针小于右指针的时候循环
-//     while(L < R) {
-//       const sum = nums[i] + nums[L] + nums[R];
+//     while(l < r) {
+//       const sum = nums[l] + nums[r] + nums[i];
 //       if (sum === 0) {
-//         res.push([nums[i],nums[L],nums[R]]);
-//         // 如果做指针小于右指针并且 左指针的值和左指针+1的值相等 就继续往右移，右指针同理
-//         while (L < R && nums[L] === nums[L + 1]) L++; // 去重
-//         while (L < R && nums[R] === nums[R - 1]) R--; // 去重
-//         L++;
-//         R--;
-//       } else if (sum < 0) { // sum 的值小于 0 说明数小了 左指针要变大
-//         L++;
-//       } else if (sum > 0) {// sum 的值大于0 说明数大了 右指针要变小
-//         R--;
+//         res.push([nums[i], nums[l], nums[r]]);
+//         // 如果左指针小于右指针并且 左指针的值和左指针+1的值相等 就继续往右移，右指针同理
+//         while(l < r && nums[l] === nums[l + 1]) l++;
+//         while(l < r && nums[r] === nums[r + 1]) r--;
+//         l++;
+//         r--;
+//       } else if(sum < 0) {
+//         // sum 的值小于 0 说明数小了 左指针要变大
+//         l++;
+//       } else {
+//         // sum 的值大于0 说明数大了 右指针要变小
+//         r--;
 //       }
 //     }
 //   }
 //   return res;
 // }
 
-var threeSum = function(nums) {
-  if (nums.length <= 2) {
-    return []
-  }
-  let res = [];
-  // 先排序
-  nums.sort((a, b) => a - b);
-  // 遍历
-  for (let i = 0; i< nums.length - 2;i++) {
-    if (nums[i] > 0) break; // 如果当前数字大于0 则三数之和一定大于零
-    if (i > 0 && nums[i - 1] === nums[i]) continue;// 去重
-    // 左指针是比i大1
-    let l = i + 1
-    // 右指针是nums的长度 -1 
-    let r = nums.length - 1;
-    // 左指针小于右指针的时候循环
-    while(l < r) {
-      const sum = nums[l] + nums[r] + nums[i];
-      if (sum === 0) {
-        res.push([nums[i], nums[l], nums[r]]);
-        // 如果左指针小于右指针并且 左指针的值和左指针+1的值相等 就继续往右移，右指针同理
-        while(l < r && nums[l] === nums[l + 1]) l++;
-        while(l < r && nums[r] === nums[r + 1]) r--;
-        l++;
-        r--;
-      } else if(sum < 0) {
-        // sum 的值小于 0 说明数小了 左指针要变大
-        l++;
-      } else {
-        // sum 的值大于0 说明数大了 右指针要变小
-        r--;
-      }
-    }
-  }
-  return res;
-}
-
-console.log(threeSum([-1,0,1,2,-1,-4])) // [-1,0,1,2,-1,-4]
+console.log(threeSum([-1,0,1,2,-1,-4])) // [[-1,-1,2],[-1,0,1]]
 console.log(threeSum([])) // []
 console.log(threeSum([0])) // []

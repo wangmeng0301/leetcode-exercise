@@ -86,3 +86,19 @@ var hasCycle = function(head) {
   }
   return false;
 };
+
+
+var hasCycle = function(head) {
+  // 没有头节点 就没有环
+  if (!head) return false;
+  let map = {};
+  while (head) {
+    if (map[head]) {
+      return true;
+    } else {
+      map[head] = true;
+      head = head.next;
+    }
+  }
+  return false;
+};

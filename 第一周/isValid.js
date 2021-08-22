@@ -41,7 +41,7 @@ var isValid = function(s) {
     if (map[i]) {
       if (stack.pop() !== map[i]) return false;
     } else {
-      stack.push(i);
+      stack.push(i)
     }
   }
   return !stack.length;

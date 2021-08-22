@@ -33,3 +33,18 @@ var reverseList = function(head) {
   head.next = null;
   return ret;
 };
+
+
+
+
+var reverseList = function(head) {
+  let prev = null;
+  let cur = head;
+  while(cur) {
+    const nex = cur.next;
+    cur.next = prev;
+    prev = cur;
+    cur = nex;
+  }
+  return prev
+};
