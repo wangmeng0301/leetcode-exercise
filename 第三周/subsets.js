@@ -11,10 +11,12 @@ var subsets = function(nums) {
     if (index === nums.length) {
       return ans.push(list.slice());
     }
-    recursion(index + 1, nums);
+    // 选择当前值
     list.push(nums[index]);
     recursion(index + 1, nums);
+    // 不选择当前值
     list.pop(nums.length - 1);
+    recursion(index + 1, nums);
   }
   recursion(0, nums, [])
   return ans
@@ -22,10 +24,22 @@ var subsets = function(nums) {
 
 
 // 迭代
+// var subsets = function(nums) {
+//   let ans = [[]]
+//   for (let i = 0; i < nums.length;i++) {
+//     let t = [];
+//     for (let j = 0; j < ans.length;j++) {
+//       t.push([...ans[j], nums[i]])
+//     }
+//     ans.push(...t)
+//   }
+//   return ans;
+// };
+
 var subsets = function(nums) {
-  let ans = [[]]
-  for (let i = 0; i < nums.length;i++) {
-    let t = [];
+  let ans = [[]];
+  for (let i = 0 ; i <  nums.length;i++) {
+    let t = []
     for (let j = 0; j < ans.length;j++) {
       t.push([...ans[j], nums[i]])
     }

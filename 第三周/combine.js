@@ -8,7 +8,7 @@
  var combine = function(n, k) {
   const res = [];
 
-  const recursion = (start, path) => { // start 是枚举选择的七点 path 是当前构建的路径
+  const recursion = (start, path) => { // start 是枚举选择的起点 path 是当前构建的路径
     if (path.length === k) { 
       return res.push(path.slice());
     }
