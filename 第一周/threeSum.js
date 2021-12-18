@@ -29,28 +29,28 @@
 //   return Array.from(res);
 // };
 
-var threeSum = function(nums) {
-  if (nums.length <= 2) {
-    return []
-  }
-  const res = [];
-  nums.sort((a, b) => a - b);
-  let map = {};
-  for (let i = 0; i < nums.length - 2;i++) {
-    for (let j = i + 1; i < nums.length - 1;j++) {
-      for (let k = i + 2; i < nums.length;k++) {
-        if (nums[i] + nums[j] === -nums[k]) {
-          let sumArr = [nums[i], nums[j], nums[k]].sort((a, b) => a - b);
-          if (!map[sumArr]) {
-            res.push(sumArr)
-            map[sumArr] = true;
-          }
-        } 
-      }
-    }
-  }
-  return res;
-}
+// var threeSum = function(nums) {
+//   if (nums.length <= 2) {
+//     return []
+//   }
+//   const res = [];
+//   nums.sort((a, b) => a - b);
+//   let map = {};
+//   for (let i = 0; i < nums.length - 2;i++) {
+//     for (let j = i + 1; i < nums.length - 1;j++) {
+//       for (let k = i + 2; i < nums.length;k++) {
+//         if (nums[i] + nums[j] === -nums[k]) {
+//           let sumArr = [nums[i], nums[j], nums[k]].sort((a, b) => a - b);
+//           if (!map[sumArr]) {
+//             res.push(sumArr)
+//             map[sumArr] = true;
+//           }
+//         } 
+//       }
+//     }
+//   }
+//   return res;
+// }
 
 
 // 双指针
@@ -63,7 +63,7 @@ var threeSum = function(nums) {
 //   nums.sort((a, b) => a - b);
 //   // 遍历
 //   for (let i = 0; i< nums.length - 2;i++) {
-//     if (nums[i] > 0) break; // 如果当前数字大于0 则三数之和一定大于零
+//     if (nums[i] > 0) break; // 因为升序 i一定是最小的一个值 如果当前数字大于0 则三数之和一定大于零
 //     if (i > 0 && nums[i - 1] === nums[i]) continue;// 去重
 //     // 左指针是比i大1
 //     let l = i + 1
@@ -76,7 +76,7 @@ var threeSum = function(nums) {
 //         res.push([nums[i], nums[l], nums[r]]);
 //         // 如果左指针小于右指针并且 左指针的值和左指针+1的值相等 就继续往右移，右指针同理
 //         while(l < r && nums[l] === nums[l + 1]) l++;
-//         while(l < r && nums[r] === nums[r + 1]) r--;
+//         while(l < r && nums[r] === nums[r - 1]) r--;
 //         l++;
 //         r--;
 //       } else if(sum < 0) {
@@ -90,6 +90,45 @@ var threeSum = function(nums) {
 //   }
 //   return res;
 // }
+
+
+var threeSum = function(nums) {
+  if (nums.length <= 2) {
+    return []
+  }
+  const res = [];
+  nums.sort((a, b) => a - b);
+
+  for (let  i = 0 ;i < nums.length - 2; i++) {
+    if (nums[i] > 0) break;
+
+    if (i > 0 && nums[i - 1] === nums[i]) continue;
+
+    let l = i + 1;
+
+    let r = nums.length - 1;
+    
+    while( l < r) {
+      const sum = nums[i] + nums[l] + nums[r];
+      if (sum === 0) {
+        res.push([nums[i], nums[l], nums[r]]);
+        while(l < r && nums[l] === nums[l + 1]) l++;
+        while(l < r && nums[r] === nums[r - 1]) r--;
+        l++;
+        r--;
+
+      } else if (sum < 0) {
+        l++;
+      } else {
+        r--
+      }
+    }
+  }
+  
+  return res;
+}
+
+
 
 console.log(threeSum([-1,0,1,2,-1,-4])) // [[-1,-1,2],[-1,0,1]]
 console.log(threeSum([])) // []
