@@ -7,7 +7,7 @@
   s = s.split('')
   let oldLen = s.length;
   let spaceCount = 0;
-  for (let i = 0;i < oldLen - 1 ;i++) {
+  for (let i = 0;i < oldLen ;i++) {
     if (s[i] === ' ') spaceCount += 1;
   }
 
@@ -26,3 +26,5 @@
 };
 
 console.log(replaceSpace('We are happy.'))
+
+console.log(replaceSpace('  '))

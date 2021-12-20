@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://h5.test.bestpay.net/common/js/trackingHelper/trackingHelper-es5.js"></script>
+</head>
+<body>
+    <h2>登录方法</h2>
+    <div onclick="trackLogin()">trackLogin</div>
+    <h2>登出方法</h2>
+    <div onclick="trackLogout()">trackLogout</div>
+    <h2>自定义页面浏览事件采集</h2>
+    <div onclick="trackPageView()">trackPageView</div>
+    <h2>自定义点击事件采集</h2>
+    <div onclick="trackClick()">trackClick</div>
+    <h2>自定义通用事件采集</h2>
+    <div onclick="trackAction()">trackAction</div>
+    <h2>停留时间采集</h2>
+    <div onclick="trackPageStart()">trackPageStart</div>
+    <div onclick="trackPageStop()">trackPageStop</div>
+    <h2>完全自定义事件采集</h2>
+    <div onclick="track()">track</div>
+    <script>
+        (function() {
+            // 初始化
+            TrackingHelper.init(false, 'webtest', {
+                test: '22222', position_name: '账单信息查询页'
+            });
+        }())
+        // 自定义通用事件采集
+        function trackAction() {
+            console.log
+            TrackingHelper.trackAction({
+                event:'click',
+                position_name: '账单信息查询页'
+            });
+        }
+        // 自定义页面浏览事件采集
+        function trackPageView() {
+            TrackingHelper.trackPageView({
+                biz_name:"运营交费助手",  
+                requirement_id:391,  
+                track_sign:"ayyjfzs.b12094_15672.billmessg_view",  
+                track_all_name:"运营交费助手-账单信息查询页_账单信息页面浏览-账单信息浏览",  
+                position_name:"账单信息查询页",  
+                position_type:"页面",  
+                page_type:"功能页",
+            });
+        };
+        // 自定义点击事件采集
+        function trackClick() {
+            TrackingHelper.trackClick({
+                biz_name:"甜橙理财",
+                position_name: '122'
+            });
+        };
+        // 登录方法
+        function trackLogin() {
+            TrackingHelper.trackLogin('13877777777', '自主登录', {
+                position_name: '222222'
+            });
+        };
+        // 登出方法
+        function trackLogout() {
+            TrackingHelper.trackLogout();
+        };
+        // 停留时间采集
+        function trackPageStart() {
+            TrackingHelper.trackPageStart('222222');
+        };
+        function trackPageStop() {
+            TrackingHelper.trackPageStop({position_name: '222222'});
+        };
+        function track() {
+            sa.track('1', '');
+        };
+    </script>
+</body>
+</html>
