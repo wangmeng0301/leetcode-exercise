@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>充值</title>
+  <link rel="stylesheet" href="https://cdn.staticfile.org/vant/2.12.26/index.min.css">
+  <link rel="stylesheet" href="https://at.alicdn.com/t/font_2728205_vjmpd2c5agk.css?spm=a313x.7781069.1998910419.64&file=font_2728205_vjmpd2c5agk.css">
+  <style>
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue',
+  Helvetica, Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB',
+  'Microsoft Yahei', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    .page {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background-color: #F7F7F5;
+    }
+
+    .header-bg {
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(to right, rgb(102, 190, 255), rgb(6, 129, 253));
+    }
+
+    .content {
+      padding: 0 20px;
+    }
+
+    .form {
+      margin-top: -64px;
+      background-color: #fff;
+      border-radius: 20px;
+      padding: 8px 16px 20px;
+      border: 1px solid #eaeaea;
+    }
+
+    .form-label {
+      height: 44px;
+      line-height: 44px;
+      color: #6E6E6C;
+      font-size: 16px;
+    }
+
+    .form-input {
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid #F0F0F0;
+      height: 44px;
+      padding: 0 12px;
+    }
+
+    .form-option {
+      display: flex;
+      margin-bottom: 10px;
+      border: 1px solid #f0f0f0;
+      height: 44px;
+      border-radius: 22px;
+      padding: 0 16px;
+      align-items: center;
+    }
+
+    .form-option.active {
+      border-color: #559AB6;
+    }
+
+    .form-option.active .form-option-radio {
+      color: #35A1FE;
+    }
+
+    .form-submit {
+      margin-top: 24px;
+    }
+
+    .jm-alipay {
+      color: #1FABF9;
+    }
+
+    .jm-wechat {
+      color: #1DB33E;
+    }
+
+    .form-option-icon {
+      font-size: 24px;
+      margin-right: 8px;
+    }
+
+    .form-option-value {
+      flex: 1;
+    }
+
+    .form-option-radio {
+      font-size: 24px;
+      color: #f1f1f1;
+    }
+
+    .navbar {
+      position: relative;
+      height: 56px;
+      line-height: 56px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    .navbar .jm-back {
+      position: absolute;
+      left: 16px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="page">
+    <div class="header-bg">
+      <div class="navbar">充值页面
+        <i v-if="backBtn" class="iconfont jm-back" @click="goBack"></i>
+      </div>
+    </div>
+    <div class="content">
+      <div class="form">
+        <div class="form-field">
+          <div class="form-label">
+            商户订单号
+          </div>
+          <input v-model.number="form.orderno" type="tel" class="form-input" disabled="disabled" >
+        </div>
+        <div class="form-field">
+          <div class="form-label">
+            请输入充值金额
+          </div>
+          <input v-model="form.money" type="tel" class="form-input" placeholder="请输入100-20000元之间的金额" disabled="disabled">
+        </div>
+        <div class="form-select">
+          <div class="form-label">
+            请选择支付方式
+          </div>
+          <div @click="changePayType('alipay')" class="form-option" :class="{active: form.paytype === 'alipay'}">
+            <i class="iconfont jm-alipay form-option-icon"></i>
+            <div class="form-option-value">通联支付宝支付</div>
+            <i v-if="form.paytype === 'alipay'" class="iconfont jm-checked form-option-radio"></i>
+            <i v-else class="iconfont jm-unchecked form-option-radio"></i>
+          </div>
+          <div @click="changePayType('wechat')" class="form-option" :class="{active: form.paytype === 'wechat'}">
+            <i class="iconfont jm-wechat form-option-icon"></i>
+            <div class="form-option-value">快捷</div>
+            <i v-if="form.paytype === 'wechat'" class="iconfont jm-checked form-option-radio"></i>
+            <i v-else class="iconfont jm-unchecked form-option-radio"></i>
+          </div>
+        </div>
+        <div class="form-submit">
+          <van-button @click="submit" block round color="linear-gradient(to right, #0681FD, #66BEFF)">
+            确认支付（¥{{form.money || 0}}）
+          </van-button>          
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.staticfile.org/vue/2.6.9/vue.min.js"></script>
+  <script src="https://cdn.staticfile.org/vant/2.12.26/vant.min.js"></script>
+  <script src="https://cdn.staticfile.org/axios/0.21.1/axios.min.js"></script>
+  <script>
+    var MIN_MONEY = 100;
+    var MAX_MONEY = 20000;
+    var ILLEGAL_TIPS = '充值渠道未注册';
+    var ILLEGAL_TIPS_ORDER_NO = '请传入订单号';
+    var ILLEGAL_TIPS_MONEY = '请传入订单金额';
+    var ILLEGAL_TIPS_KEY = '请传入key';
+
+    var vm = new Vue({
+      el: '#app',
+      data: {
+        // 下订单锁
+        ordering: false,
+        // 表单信息
+        form: {
+          // 合作方id，链接上获取
+          pid: 880001,
+          // 用户id
+          // uid: '',
+          // 充值金额，单位：元
+          money: 100,
+          // 支付方式 alipay 支付宝，wechat 微信
+          paytype: 'alipay',
+          // 扩展字段
+          extra: {},
+          //商户订单号
+          orderno: '',
+
+          key:''
+        }
+      },
+      watch: {
+        // 监听金额变动，使之范围合理
+        'form.money': function(val, oldVal) {
+          console.log(val, oldVal);
+          var newVal = parseFloat(val) || 100;
+          newVal = newVal > 20000 ? 20000 : newVal;
+          this.form.money = newVal;
+        }
+      },
+      computed: {
+        backBtn: function() {
+          return history.length > 1;
+        }
+      },
+      methods: {
+        // 修改支付方式
+        changePayType: function(payType) {
+          this.form.paytype = payType;
+        },
+        // 创建订单
+        createOrder() {
+          var self = this;
+          self.ordering = true;
+          // axios.post('https://mock.ik47.com/mock/5d48ea689a386d665f9ca9b8/tmp/yunbao/charge/getWxH5Order', this.form)
+          var params = JSON.parse(JSON.stringify(this.form));
+          params.pid = parseInt(params.pid);
+          // params.uid = parseInt(params.uid);
+          params.extra = JSON.stringify(params.extra);
+          axios({
+            url: '/appapi/?s=Charge.getAllinOrder',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            params: params,
+          })
+            .then(function(res) {
+              var data = res.data.data;
+              console.log('order result', data);
+              if (data.code || !data.info[0].mweb_url) {
+                return self.$notify(data.msg || '下单失败');
+              }
+              
+              if (params.paytype === 'alipay') {
+                return self.goAlipay(data);
+              }
+              
+              return self.goWechatPay(data);
+            }).finally(function() {
+              self.ordering = false;
+            });
+        },
+        goWechatPay: function(data) {
+          setTimeout(function() {
+            location.href = data.info[0].mweb_url + '&redirect_url=' + encodeURIComponent(location.href);
+          }, 600);
+          return this.$toast.loading({
+            message: '充值中',
+            forbidClick: true,
+            loadingType: 'spinner',
+          });
+        },
+        goAlipay: function(data) {
+          setTimeout(function() {
+            location.href = data.info[0].mweb_url
+            // var div = document.createElement('div')
+            // div.innerHTML = data.info[0].mweb_url
+            // document.body.appendChild(div)
+            // document.forms[0].submit();
+          }, 600);
+          return this.$toast.loading({
+            message: '充值中',
+            forbidClick: true,
+            loadingType: 'spinner',
+          });
+        },
+        // 提交按钮
+        submit: function() {
+          if (!this.form.pid) {
+            return this.$notify(ILLEGAL_TIPS);
+          }
+
+          if (!this.form.orderno) {
+            return this.$notify('请传入商户订单号');
+          }
+          // if (this.form.money < 100) {
+          //   this.form.money = 100;
+          //   return this.$notify('充值金额必须大于等于100元');
+          // }
+
+          this.createOrder();
+        },
+        // 左上角返回事件
+        goBack: function() {
+          return history.go(-1);
+        },
+        // 处理链接参数
+        parseURLSearch() {
+          var queries = location.search.slice(1);
+          if (!queries) {
+            return false;
+          }
+          var self = this;
+          queries.split('&').forEach(function(param) {
+            if (!param) {
+              return;
+            }
+
+            var paramArr = param.split('=');
+            if (paramArr.length < 2) {
+              return;
+            }
+
+            self.form.extra[paramArr[0]] = paramArr[1];
+          });
+
+          self.form.pid = self.form.extra.pid || '';
+          self.form.money = self.form.extra.money || '';
+          self.form.orderno = self.form.extra.orderno || '';
+          self.form.key = self.form.extra.key || '';
+        }
+      },
+      mounted: function () {
+        this.parseURLSearch();
+        if (!this.form.pid) {
+          this.$toast.fail(ILLEGAL_TIPS)
+        }
+        if (!this.form.money) {
+          this.$toast.fail(ILLEGAL_TIPS_MONEY)
+        }
+        if (!this.form.orderno) {
+          this.$toast.fail(ILLEGAL_TIPS_ORDER_NO)
+        }
+      }
+    });
+  </script>
+</body>
+</html>
