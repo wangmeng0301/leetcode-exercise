@@ -119,7 +119,7 @@
       font-size: 20px;
     }
     .bindcard-wrapper {
-      padding: 30px 15px;
+      padding: 15px;
       height: 450px;
     }
     .bindcard-wrapper .title {
@@ -129,6 +129,13 @@
     }
     .bindcard-wrapper .bindcard-form-submit {
       margin-top: 20px;
+      padding-bottom: 15px;
+    }
+    .close-bindcard, .close-sms {
+      font-size: 12px;
+      color: #9e9c9c;
+      text-align: center;
+      margin-top: 10px;
     }
     .get-verify-code-btn {
       min-width: 80px;
@@ -143,8 +150,6 @@
     }
     .card-header .card-check {
       font-size: 12px;
-      border: 1px solid #559AB6;
-      border-radius: 30px;
       padding: 4px;
     }
     .select-card {
@@ -159,18 +164,22 @@
 
     .more-card-list {
       padding: 15px;
+      height: 450px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding-bottom: 20px;
     }
     
     .more-card-list .more-card-list-header {
       text-align: center;
-      position: relative;
       font-size: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .more-card-list .add-Card {
-      position: absolute;
-      right: 15px;
-      top: 0;
+    .more-card-list .add-Card,.close-more-Card {
       font-size: 14px;
     }
 
@@ -178,13 +187,26 @@
       display: flex;
       justify-content: space-between;
       border: none;
+      border-radius: 0%;
       border-bottom: 1px solid #F0F0F0;
     }
 
-    .more-card-list .confirm-card {
-
+    .more-card-list .confirm-card-wrapper {
+      padding: 20px 0;
     }
 
+    .sms-wrapper {
+      padding: 15px;
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .sms-wrapper .sms-title {
+      text-align: center;
+      font-weight: 600;
+    }
 
   </style>
 </head>
@@ -232,12 +254,16 @@
               已选卡
             </div>
             <div class="card-check">
-              <template class="check-more" v-if="bindCardList.length"> 
+              <div
+                class="check-more"
+                v-if="bindCardList.length"
+                @click="showMoreCardList = true"
+              > 
                 查看更多
-              </template>
-              <template v-else>
+              </div>
+              <div v-else>
                 添加新银行卡
-              </template>
+              </div>
             </div>
           </div>
           <div v-if="selectedCard" class="select-card form-option active">
@@ -375,6 +401,7 @@
               label="验证码"
               placeholder="验证码"w
               maxlength="6"
+              center
               :rules="[{
                 required: true,
                 message: '请填写验证码'
@@ -393,6 +420,12 @@
             </van-field>
             <div class="bindcard-form-submit">
               <van-button round block type="info" native-type="submit">提交</van-button>
+              <div
+                class="close-bindcard"
+                @click="closeBindPopup"
+              >
+                关闭
+              </div>
             </div>
           </van-form>
         </div>
@@ -408,21 +441,74 @@
       </van-popup>
       <van-popup v-model="showMoreCardList" round position="bottom">
         <div class="more-card-list">
-          <div class="more-card-list-header">
-            银行卡列表
-            <div class="add-Card">
-              添加新卡
+          <div>
+            <div class="more-card-list-header">
+              <div class="close-more-Card" @click="showMoreCardList = false">
+                关闭
+              </div>
+              银行卡列表
+              <div class="add-Card" @click="showBindCardPopup = true">
+                添加新卡
+              </div>
+            </div>
+            <div
+              v-for="(item, index) in bindCardList"
+              class="more-card form-option active"
+              :key="index"
+              @click="selectedCardIndex = index"
+            >
+              {{ item.cardNo }}
+              <i v-if="index === selectedCardIndex" class="iconfont jm-checked form-option-radio"></i>
+              <i v-else class="iconfont jm-unchecked form-option-radio"></i>
             </div>
           </div>
-          <div v-for="(item, index) in bindCardList" class="more-card form-option active" :key="index">
-            {{ item.cardNo }}
-            <i v-if="index === " class="iconfont jm-checked form-option-radio"></i>
-            <i v-else class="iconfont jm-unchecked form-option-radio"></i>
+          <div class="confirm-card-wrapper">
+            <van-button
+              @click="confirmSelectedCard"
+              block
+              round
+              color="linear-gradient(to right, #0681FD, #66BEFF)"
+            >
+              确认选卡
+            </van-button> 
           </div>
-          <van-button @click="submit" block round color="linear-gradient(to right, #0681FD, #66BEFF)">
-            确认选卡
-          </van-button> 
         </div>
+      </van-popup>
+      <van-popup v-model="showSmsPopup" round position="bottom" :close-on-click-overlay="false">
+        <div class="sms-wrapper">
+          <div class="sms-title">
+            短信验证码
+          </div>
+          <div>
+            <van-field
+              v-model="quickPaySms"
+              type="number"
+              name="验证码"
+              label="验证码"
+              placeholder="验证码"
+              maxlength="6"
+              center
+            >
+              <template #button>
+                <van-button class="get-verify-code-btn" @click="getQuickPaySms" size="small" type="info" round :disabled="quickPaySmsStatus">
+                  {{ quickPaySmsText }}
+                </van-button>
+              </template>
+            </van-field>
+          </div>
+          <div>
+            <van-button
+              @click="confirmQuickPay"
+              block
+              round
+              color="linear-gradient(to right, #0681FD, #66BEFF)"
+            >
+              确定支付
+            </van-button>
+            <div class="close-sms" @click="showSmsPopup = false">
+              关闭
+            </div>
+          </div>
         </div>
       </van-popup>
     </div>
@@ -486,15 +572,39 @@
           cardNo: '6217856000008784000',
         },{
           cardNo: '6217856000008784000'
+        },{
+          cardNo: '6217856000008784000'
+        },{
+          cardNo: '6217856000008784000'
+        },{
+          cardNo: '6217856000008784000'
+        },{
+          cardNo: '6217856000008784000'
+        },{
+          cardNo: '6217856000008784000'
         }],
         // 绑卡发送验证码按钮文案
         bindCardVerifyText: '获取验证码',
         // 是否可以点击发送验证码
         bindCardVerifyCodeStatus: false,
+        // 展示更多卡列表
+        showMoreCardList: false,
+        // 选中卡的 index
+        selectedCardIndex: 0,
         // 已选银行卡
         selectedCard: null,
-        // 展示更多卡列表
-        showMoreCardList: true
+        // 绑卡验证码倒计时
+        bindCardSmsTimer: null,
+        // 快捷支付短信验证码弹窗
+        showSmsPopup: false,
+        // 快捷支付验证码
+        quickPaySms: false,
+        // 快捷支付验证码按钮展示文案
+        quickPaySmsText: '发送验证码',
+        // 快捷支付按钮状态
+        quickPaySmsStatus: false,
+        // 快捷支付倒计时
+        quickSmsTimer: null,
       },
       filters: {
         handleCertificateType(value) {
@@ -510,7 +620,7 @@
           var newVal = parseFloat(val) || 100;
           newVal = newVal > 20000 ? 20000 : newVal;
           this.form.money = newVal;
-        }
+        },
       },
       computed: {
         backBtn: function() {
@@ -518,18 +628,31 @@
         },
       },
       methods: {
+        confirmSelectedCard() {
+          if (!this.bindCardList.length) {
+            this.this.selectedCard = null
+            return;
+          }
+          this.selectedCard = this.bindCardList[this.selectedCardIndex]
+          this.showMoreCardList = false;
+        },
         confirmIdType(item) {
           this.bindCardForm.certificateType = item.value
           this.showIdTypePicker = false
         },
-        onSubmit(){},
+        onSubmit(){
+          // 调用接口 提交绑卡信息
+          // 成功后 查询绑卡列表 关闭弹窗
+          this.queryBindCardList()
+          this.showBindCardPopup = false
+        },
         onFailed(errorInfo) {
           console.log(errorInfo, 'errorInfo')
         },
         // 修改支付方式
         changePayType: function(payType) {
           if (payType === 'wechat') {
-            this.queryBindCardList();
+            this.queryBindCardList('changePayType');
           }
           this.form.paytype = payType;
         },
@@ -603,7 +726,10 @@
           //   return this.$notify('充值金额必须大于等于100元');
           // }
           if (this.form.paytype === 'wechat') {
-            this.queryBindCardList();
+            if (!this.selectedCard) {
+              return this.showBindCardDialog();
+            }
+            this.createWeChatOrder();
             return;
           }
 
@@ -638,10 +764,17 @@
           self.form.orderno = self.form.extra.orderno || '';
           self.form.key = self.form.extra.key || '';
         },
-        queryBindCardList() {
+        queryBindCardList(type) {
           // 查询已绑卡列表
-          if (!this.bindCardList.length) {
-            vant.Dialog.alert({
+          if (!this.bindCardList.length && type === 'changePayType') {
+            this.showBindCardDialog();
+          }
+          if (this.bindCardList.length) {
+            this.selectedCard = this.bindCardList[this.selectedCardIndex]
+          }
+        },
+        showBindCardDialog() {
+          vant.Dialog.alert({
               title: '提示',
               message: '请先绑定一张银行卡',
               confirmButtonText: '去绑卡',
@@ -651,7 +784,6 @@
             }).then(() => {
               this.showBindCardPopup = true;
             });
-          }
         },
         getCardVerifyCode() {
           if (this.bindCardVerifyCodeStatus) {
@@ -691,6 +823,51 @@
               this.bindCardVerifyText = '重新获取验证码';
             }
           }, 1000);
+        },
+        // 快捷支付申请发送短信验证码
+        createWeChatOrder() {
+          // 调用支付申请接口发送的短信验证码，展示验证码弹窗
+          this.getQuickPaySms()
+        },
+        // 快捷支付下单
+        confirmQuickPay() {
+          if (!this.quickPaySms) {
+            return this.$toast.fail('请先输入验证码')
+          }
+          // 调用快捷支付 确认支付接口
+        },
+        // 获取快捷支付验证码
+        getQuickPaySms() {
+          if (this.quickPaySmsStatus) {
+            return
+          }
+          // 调用接口
+          // 成功与否都展示弹窗
+          this.showSmsPopup = true
+          var i = 3;
+          this.quickPaySmsText = `${i}S`;
+          this.quickPaySmsStatus = true;
+          this.quickSmsTimer = setInterval(() => {
+            i -= 1;
+            this.quickPaySmsText = `${i}S`;
+            if (i <= 0) {
+              clearInterval(this.quickSmsTimer);
+              this.quickPaySmsStatus = false
+              this.quickPaySmsText = '重新获取验证码';
+            }
+          }, 1000);
+        },
+        closeBindPopup() {
+          this.bindCardForm = {
+            cardType: '00',
+            certificateType: '0',
+            verifyCode: '',
+          },
+          this.showBindCardPopup = false
+          this.bindCardSmsTimer && clearInterval(this.bindCardSmsTimer);
+          this.bindCardSmsTimer = null
+          this.bindCardVerifyCodeStatus = false
+          this.bindCardVerifyText = '发送验证码';
         }
       },
       mounted: function () {
