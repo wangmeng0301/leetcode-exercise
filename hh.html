@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>充值</title>
   <link rel="stylesheet" href="https://cdn.staticfile.org/vant/2.12.26/index.min.css">
-  <link rel="stylesheet" href="https://at.alicdn.com/t/font_2728205_vjmpd2c5agk.css?spm=a313x.7781069.1998910419.64&file=font_2728205_vjmpd2c5agk.css">
+  <link rel="stylesheet" href="https://at.alicdn.com/t/font_2728205_plid72w014.css">
   <style>
     html, body {
       height: 100%;
@@ -85,8 +85,8 @@
       color: #1FABF9;
     }
 
-    .jm-wechat {
-      color: #1DB33E;
+    .jm-yinlian {
+      color: #db3a78
     }
 
     .form-option-icon {
@@ -118,6 +118,74 @@
       left: 16px;
       font-size: 20px;
     }
+    .bindcard-wrapper {
+      padding: 30px 15px;
+      height: 450px;
+    }
+    .bindcard-wrapper .title {
+      text-align: center;
+      font-size: 24px;
+      font-family: 600;
+    }
+    .bindcard-wrapper .bindcard-form-submit {
+      margin-top: 20px;
+    }
+    .get-verify-code-btn {
+      min-width: 80px;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .card-header .card-title {
+      font-size: 18px;
+    }
+    .card-header .card-check {
+      font-size: 12px;
+      border: 1px solid #559AB6;
+      border-radius: 30px;
+      padding: 4px;
+    }
+    .select-card {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .no-select-card {
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .more-card-list {
+      padding: 15px;
+    }
+    
+    .more-card-list .more-card-list-header {
+      text-align: center;
+      position: relative;
+      font-size: 20px;
+    }
+
+    .more-card-list .add-Card {
+      position: absolute;
+      right: 15px;
+      top: 0;
+      font-size: 14px;
+    }
+
+    .more-card-list .more-card {
+      display: flex;
+      justify-content: space-between;
+      border: none;
+      border-bottom: 1px solid #F0F0F0;
+    }
+
+    .more-card-list .confirm-card {
+
+    }
+
+
   </style>
 </head>
 <body>
@@ -152,10 +220,32 @@
             <i v-else class="iconfont jm-unchecked form-option-radio"></i>
           </div>
           <div @click="changePayType('wechat')" class="form-option" :class="{active: form.paytype === 'wechat'}">
-            <i class="iconfont jm-wechat form-option-icon"></i>
-            <div class="form-option-value">快捷</div>
+            <i class="iconfont jm-yinlian form-option-icon"></i>
+            <div class="form-option-value">快捷支付</div>
             <i v-if="form.paytype === 'wechat'" class="iconfont jm-checked form-option-radio"></i>
             <i v-else class="iconfont jm-unchecked form-option-radio"></i>
+          </div>
+        </div>
+        <div v-if="form.paytype === 'wechat'" class="card-list-wraper">
+          <div class="card-header">
+            <div class="card-title">
+              已选卡
+            </div>
+            <div class="card-check">
+              <template class="check-more" v-if="bindCardList.length"> 
+                查看更多
+              </template>
+              <template v-else>
+                添加新银行卡
+              </template>
+            </div>
+          </div>
+          <div v-if="selectedCard" class="select-card form-option active">
+            卡号：{{ selectedCard.cardNo }}
+            <i class="iconfont jm-checked form-option-radio"></i>
+          </div>
+          <div v-else class="no-select-card">
+            没有可选银行卡，请先绑定一张新卡
           </div>
         </div>
         <div class="form-submit">
@@ -164,6 +254,177 @@
           </van-button>          
         </div>
       </div>
+      <!-- 
+        快捷支付梳理
+        前端：1.选择快捷支付  未绑卡-点击 请绑卡 
+        弹出绑卡页面 （一共有9个字段
+        卡类型
+        银行卡号
+        证件类型
+        证件号
+        户名
+        手机号码
+        验证码 
+        如果是信用卡 还有 有效期 Cvv2）
+          2.快捷支付 每次支付要验证码
+
+
+        后端 ：1.查询是否绑卡 根据 Pid查询 返回绑卡列表信息
+              2.绑卡申请接口-会给用户发送验证码
+              3.绑卡完成接口（ 新增用户绑卡信息）
+              4.支付申请
+            5.支付确认
+            6.重新获取支付验证码
+            7.快捷回调
+       -->
+      <van-popup v-model="showBindCardPopup" round position="bottom">
+        <div class="bindcard-wrapper">
+          <div class="title">
+            绑定银行卡
+          </div>
+          <van-form @submit="onSubmit" label-width="5em" @failed="onFailed">
+            <van-field
+              name="cardType"
+              label="卡类型"
+            >
+              <template #input>
+                <van-radio-group v-model="bindCardForm.cardType" direction="horizontal">
+                  <van-radio name="00">借记卡</van-radio>
+                  <van-radio name="02">信用卡 </van-radio>
+                </van-radio-group>
+              </template>
+            </van-field>
+            <van-field
+              v-model="bindCardForm.bankCardNo"
+              type="number"
+              name="银行卡号"
+              label="银行卡号"
+              placeholder="银行卡号"
+              :rules="[{
+                required: true,
+                message: '请填写银行卡号'
+              },
+              {
+                pattern: bindCardPattern.bankCardNo,
+                message: '请填写正确银行卡号'
+              }]"
+            >
+            </van-field>
+            <van-field
+              readonly
+              clickable
+              label="证件类型"
+              :value="bindCardForm.certificateType | handleCertificateType"
+              placeholder="选择证件类型"
+              @click="showIdTypePicker = true"
+            >
+            </van-field>
+            <van-field
+              v-model="bindCardForm.idNo"
+              name="证件号"
+              label="证件号"
+              placeholder="证件号"
+              :rules="[{
+                  required: true,
+                  message: '请填写证件号'
+                },
+                {
+                  pattern: bindCardPattern.idNo,
+                  message: '请正确填写证件号'
+                },
+              ]"
+            >
+            </van-field>
+            <van-field
+              v-model="bindCardForm.username"
+              name="户名"
+              label="户名"
+              placeholder="户名"
+              :rules="[{ required: true, message: '请填写正确户名' }]"
+            >
+            </van-field>
+            <van-field
+              v-model="bindCardForm.productNo"
+              name="手机号"
+              label="手机号"
+              maxlength="11"
+              placeholder="手机号"
+              :rules="[{
+                required: true,
+                message: '请填写手机号'
+              },
+              {
+                pattern: bindCardPattern.productNo,
+                message: '请填写正确手机号'
+              }]"
+            >
+            </van-field>
+            <van-field
+              v-if="bindCardForm.cardType==='02'"
+              v-model="bindCardForm.validityDate"
+              name="有效期"
+              label="有效期"
+              placeholder="年月日"
+              :rules="[{ required: true, message: '请填写有效期' }]"
+            >
+            </van-field>
+            <van-field
+              v-model="bindCardForm.verifyCode"
+              type="number"
+              name="验证码"
+              label="验证码"
+              placeholder="验证码"w
+              maxlength="6"
+              :rules="[{
+                required: true,
+                message: '请填写验证码'
+              },
+              {
+                pattern: bindCardPattern.verifyCode,
+                required: true,
+                message: '请填写正确验证码'
+              }]"
+            >
+              <template #button>
+                <van-button class="get-verify-code-btn" @click="getCardVerifyCode" native-type="button" size="small" type="info" round :disabled="bindCardVerifyCodeStatus">
+                  {{ bindCardVerifyText }}
+                </van-button>
+              </template>
+            </van-field>
+            <div class="bindcard-form-submit">
+              <van-button round block type="info" native-type="submit">提交</van-button>
+            </div>
+          </van-form>
+        </div>
+      </van-popup>
+      <van-popup v-model="showIdTypePicker" round position="bottom">
+        <van-picker
+          :columns="certificateTypeColumns"
+          show-toolbar
+          @confirm="confirmIdType"
+          @cancel="showIdTypePicker = false"
+        >
+        </van-picker>
+      </van-popup>
+      <van-popup v-model="showMoreCardList" round position="bottom">
+        <div class="more-card-list">
+          <div class="more-card-list-header">
+            银行卡列表
+            <div class="add-Card">
+              添加新卡
+            </div>
+          </div>
+          <div v-for="(item, index) in bindCardList" class="more-card form-option active" :key="index">
+            {{ item.cardNo }}
+            <i v-if="selectedCard && item.cardNo === selectedCard.cardNo" class="iconfont jm-checked form-option-radio"></i>
+            <i v-else class="iconfont jm-unchecked form-option-radio"></i>
+          </div>
+          <div class="confirm-card">
+            确定
+          </div>
+        </div>
+        </div>
+      </van-popup>
     </div>
   </div>
   <script src="https://cdn.staticfile.org/vue/2.6.9/vue.min.js"></script>
@@ -197,7 +458,49 @@
           //商户订单号
           orderno: '',
 
-          key:''
+          key:'',
+        },
+        // 展示绑卡弹窗
+        showBindCardPopup: false,
+        // 绑卡表单数据
+        bindCardForm: {
+          cardType: '00',
+          certificateType: '0',
+          verifyCode: '',
+        },
+        // 展示选择证件类型弹窗
+        showIdTypePicker: false,
+        // 证件类型list
+        certificateTypeColumns: [
+          { text: '身份证', value: 0 },
+        ],
+        // 绑卡校验规则
+        bindCardPattern: {
+          idNo: /^(^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$)|(^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])((\d{4})|\d{3}[X])$)$/,
+          verifyCode: /^\d{6}$/,
+          productNo: /^1[3456789]\d{9}$/,
+          bankCardNo: /^[0-9]{15,19}$/,
+        },
+        // 已绑卡列表
+        bindCardList: [{
+          cardNo: '6217856000008784000',
+        },{
+          cardNo: '6217856000008784000'
+        }],
+        // 绑卡发送验证码按钮文案
+        bindCardVerifyText: '获取验证码',
+        // 是否可以点击发送验证码
+        bindCardVerifyCodeStatus: false,
+        // 已选银行卡
+        selectedCard: null,
+        // 展示更多卡列表
+        showMoreCardList: true
+      },
+      filters: {
+        handleCertificateType(value) {
+          return {
+            0: '身份证'
+          }[value]
         }
       },
       watch: {
@@ -212,11 +515,22 @@
       computed: {
         backBtn: function() {
           return history.length > 1;
-        }
+        },
       },
       methods: {
+        confirmIdType(item) {
+          this.bindCardForm.certificateType = item.value
+          this.showIdTypePicker = false
+        },
+        onSubmit(){},
+        onFailed(errorInfo) {
+          console.log(errorInfo, 'errorInfo')
+        },
         // 修改支付方式
         changePayType: function(payType) {
+          if (payType === 'wechat') {
+            this.queryBindCardList();
+          }
           this.form.paytype = payType;
         },
         // 创建订单
@@ -288,6 +602,10 @@
           //   this.form.money = 100;
           //   return this.$notify('充值金额必须大于等于100元');
           // }
+          if (this.form.paytype === 'wechat') {
+            this.queryBindCardList();
+            return;
+          }
 
           this.createOrder();
         },
@@ -319,6 +637,60 @@
           self.form.money = self.form.extra.money || '';
           self.form.orderno = self.form.extra.orderno || '';
           self.form.key = self.form.extra.key || '';
+        },
+        queryBindCardList() {
+          // 查询已绑卡列表
+          if (!this.bindCardList.length) {
+            vant.Dialog.alert({
+              title: '提示',
+              message: '请先绑定一张银行卡',
+              confirmButtonText: '去绑卡',
+              confirmButtonColor: '#35A1FE',
+              showCancelButton: true,
+              cancelButtonText: '取消'
+            }).then(() => {
+              this.showBindCardPopup = true;
+            });
+          }
+        },
+        getCardVerifyCode() {
+          if (this.bindCardVerifyCodeStatus) {
+            return;
+          }
+          var verifyList = ['bankCardNo', 'idNo', 'username', 'productNo'];
+          if (this.bindCardForm.cardType === '02') {
+            verifyList.push('validityDate')
+          }
+          
+          for (var i = 0; i < verifyList.length;i++) {
+            var code = verifyList[i]
+            var verifyMap = {
+              'bankCardNo': '银行卡号',
+              'idNo': '身份证号',
+              'username': '户名',
+              'productNo': '手机号',
+              'validityDate': '有效期'
+            }
+            if (!this.bindCardForm[code]
+              || (this.bindCardPattern[code] && !this.bindCardPattern[code].test(this.bindCardForm[verifyList[i]]))
+            ) {
+              var failText = '请正确填写' + verifyMap[code]
+              vant.Toast.fail(failText);
+              return
+            }
+          }
+          var i = 60;
+          this.bindCardVerifyText = `${i}S`;
+          this.bindCardVerifyCodeStatus = true;
+          this.bindCardSmsTimer = setInterval(() => {
+            i -= 1;
+            this.bindCardVerifyText = `${i}S`;
+            if (i <= 0) {
+              clearInterval(this.bindCardSmsTimer);
+              this.bindCardVerifyCodeStatus = false
+              this.bindCardVerifyText = '重新获取验证码';
+            }
+          }, 1000);
         }
       },
       mounted: function () {
