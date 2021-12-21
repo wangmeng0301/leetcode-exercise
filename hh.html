@@ -416,12 +416,12 @@
           </div>
           <div v-for="(item, index) in bindCardList" class="more-card form-option active" :key="index">
             {{ item.cardNo }}
-            <i v-if="selectedCard && item.cardNo === selectedCard.cardNo" class="iconfont jm-checked form-option-radio"></i>
+            <i v-if="index === " class="iconfont jm-checked form-option-radio"></i>
             <i v-else class="iconfont jm-unchecked form-option-radio"></i>
           </div>
-          <div class="confirm-card">
-            确定
-          </div>
+          <van-button @click="submit" block round color="linear-gradient(to right, #0681FD, #66BEFF)">
+            确认选卡
+          </van-button> 
         </div>
         </div>
       </van-popup>
