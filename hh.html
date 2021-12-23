@@ -119,13 +119,17 @@
       font-size: 20px;
     }
     .bindcard-wrapper {
-      padding: 15px;
-      height: 450px;
+      padding: 10px;
+      height: 470px;
     }
     .bindcard-wrapper .title {
       text-align: center;
       font-size: 24px;
       font-family: 600;
+    }
+    .bindcard-wrapper .bind-card-body {
+      overflow-y: scroll;
+      height: 320px;
     }
     .bindcard-wrapper .bindcard-form-submit {
       margin-top: 20px;
@@ -183,16 +187,18 @@
       font-size: 14px;
     }
 
+    .more-card-list .more-card-list-body {
+      overflow-y: scroll;
+      margin: 10px 0;
+    }
+
     .more-card-list .more-card {
       display: flex;
       justify-content: space-between;
       border: none;
       border-radius: 0%;
       border-bottom: 1px solid #F0F0F0;
-    }
-
-    .more-card-list .confirm-card-wrapper {
-      padding: 20px 0;
+      margin: 0;
     }
 
     .sms-wrapper {
@@ -261,7 +267,7 @@
               > 
                 查看更多
               </div>
-              <div v-else>
+              <div v-else @click="showBindCardPopup = true">
                 添加新银行卡
               </div>
             </div>
@@ -308,116 +314,118 @@
           <div class="title">
             绑定银行卡
           </div>
-          <van-form @submit="onSubmit" label-width="5em" @failed="onFailed">
-            <van-field
-              name="cardType"
-              label="卡类型"
-            >
-              <template #input>
-                <van-radio-group v-model="bindCardForm.cardType" direction="horizontal">
-                  <van-radio name="00">借记卡</van-radio>
-                  <van-radio name="02">信用卡 </van-radio>
-                </van-radio-group>
-              </template>
-            </van-field>
-            <van-field
-              v-model="bindCardForm.bankCardNo"
-              type="number"
-              name="银行卡号"
-              label="银行卡号"
-              placeholder="银行卡号"
-              :rules="[{
-                required: true,
-                message: '请填写银行卡号'
-              },
-              {
-                pattern: bindCardPattern.bankCardNo,
-                message: '请填写正确银行卡号'
-              }]"
-            >
-            </van-field>
-            <van-field
-              readonly
-              clickable
-              label="证件类型"
-              :value="bindCardForm.certificateType | handleCertificateType"
-              placeholder="选择证件类型"
-              @click="showIdTypePicker = true"
-            >
-            </van-field>
-            <van-field
-              v-model="bindCardForm.idNo"
-              name="证件号"
-              label="证件号"
-              placeholder="证件号"
-              :rules="[{
+          <van-form @submit="confirmBindCard" label-width="5em" @failed="onFailed">
+            <div class="bind-card-body">
+              <van-field
+                name="accttype"
+                label="卡类型"
+              >
+                <template #input>
+                  <van-radio-group v-model="bindCardForm.accttype" direction="horizontal">
+                    <van-radio name="00">借记卡</van-radio>
+                    <van-radio name="02">信用卡 </van-radio>
+                  </van-radio-group>
+                </template>
+              </van-field>
+              <van-field
+                v-model="bindCardForm.acctno"
+                type="number"
+                name="银行卡号"
+                label="银行卡号"
+                placeholder="银行卡号"
+                :rules="[{
                   required: true,
-                  message: '请填写证件号'
+                  message: '请填写银行卡号'
                 },
                 {
-                  pattern: bindCardPattern.idNo,
-                  message: '请正确填写证件号'
+                  pattern: bindCardPattern.acctno,
+                  message: '请填写正确银行卡号'
+                }]"
+              >
+              </van-field>
+              <van-field
+                readonly
+                clickable
+                label="证件类型"
+                :value="bindCardForm.idtype | handleCertificateType"
+                placeholder="选择证件类型"
+                @click="showIdTypePicker = true"
+              >
+              </van-field>
+              <van-field
+                v-model="bindCardForm.idno"
+                name="证件号"
+                label="证件号"
+                placeholder="证件号"
+                :rules="[{
+                    required: true,
+                    message: '请填写证件号'
+                  },
+                  {
+                    pattern: bindCardPattern.idno,
+                    message: '请正确填写证件号'
+                  },
+                ]"
+              >
+              </van-field>
+              <van-field
+                v-model="bindCardForm.acctname"
+                name="户名"
+                label="户名"
+                placeholder="户名"
+                :rules="[{ required: true, message: '请填写正确户名' }]"
+              >
+              </van-field>
+              <van-field
+                v-model="bindCardForm.mobile"
+                name="手机号"
+                label="手机号"
+                maxlength="11"
+                placeholder="手机号"
+                :rules="[{
+                  required: true,
+                  message: '请填写手机号'
                 },
-              ]"
-            >
-            </van-field>
-            <van-field
-              v-model="bindCardForm.username"
-              name="户名"
-              label="户名"
-              placeholder="户名"
-              :rules="[{ required: true, message: '请填写正确户名' }]"
-            >
-            </van-field>
-            <van-field
-              v-model="bindCardForm.productNo"
-              name="手机号"
-              label="手机号"
-              maxlength="11"
-              placeholder="手机号"
-              :rules="[{
-                required: true,
-                message: '请填写手机号'
-              },
-              {
-                pattern: bindCardPattern.productNo,
-                message: '请填写正确手机号'
-              }]"
-            >
-            </van-field>
-            <van-field
-              v-if="bindCardForm.cardType==='02'"
-              v-model="bindCardForm.validityDate"
-              name="有效期"
-              label="有效期"
-              placeholder="年月日"
-              :rules="[{ required: true, message: '请填写有效期' }]"
-            >
-            </van-field>
-            <van-field
-              v-model="bindCardForm.verifyCode"
-              type="number"
-              name="验证码"
-              label="验证码"
-              placeholder="验证码"w
-              maxlength="6"
-              center
-              :rules="[{
-                required: true,
-                message: '请填写验证码'
-              },
-              {
-                pattern: bindCardPattern.verifyCode,
-                required: true,
-                message: '请填写正确验证码'
-              }]"
-            >
-              <template #button>
-                <van-button class="get-verify-code-btn" @click="getCardVerifyCode" native-type="button" size="small" type="info" round :disabled="bindCardVerifyCodeStatus">
-                  {{ bindCardVerifyText }}
-                </van-button>
-              </template>
-            </van-field>
+                {
+                  pattern: bindCardPattern.mobile,
+                  message: '请填写正确手机号'
+                }]"
+              >
+              </van-field>
+              <van-field
+                v-if="bindCardForm.accttype==='02'"
+                v-model="bindCardForm.validdate"
+                name="有效期"
+                label="有效期"
+                placeholder="年月日"
+                :rules="[{ required: true, message: '请填写有效期' }]"
+              >
+              </van-field>
+              <van-field
+                v-model="smscode"
+                type="number"
+                name="验证码"
+                label="验证码"
+                placeholder="验证码"w
+                maxlength="6"
+                center
+                :rules="[{
+                  required: true,
+                  message: '请填写验证码'
+                },
+                {
+                  pattern: bindCardPattern.smscode,
+                  required: true,
+                  message: '请填写正确验证码'
+                }]"
+              >
+                <template #button>
+                  <van-button class="get-verify-code-btn" @click="getCardVerifyCode" native-type="button" size="small" type="info" round :disabled="bindCardVerifyCodeStatus">
+                    {{ bindCardVerifyText }}
+                  </van-button>
+                </template>
+              </van-field>
+            </div>
             <div class="bindcard-form-submit">
               <van-button round block type="info" native-type="submit">提交</van-button>
               <div
@@ -441,16 +449,16 @@
       </van-popup>
       <van-popup v-model="showMoreCardList" round position="bottom">
         <div class="more-card-list">
-          <div>
-            <div class="more-card-list-header">
-              <div class="close-more-Card" @click="showMoreCardList = false">
-                关闭
-              </div>
-              银行卡列表
-              <div class="add-Card" @click="showBindCardPopup = true">
-                添加新卡
-              </div>
+          <div class="more-card-list-header">
+            <div class="close-more-Card" @click="showMoreCardList = false">
+              关闭
             </div>
+            银行卡列表
+            <div class="add-Card" @click="showBindCardPopup = true">
+              添加新卡
+            </div>
+          </div>
+          <div class="more-card-list-body">
             <div
               v-for="(item, index) in bindCardList"
               class="more-card form-option active"
@@ -505,7 +513,7 @@
             >
               确定支付
             </van-button>
-            <div class="close-sms" @click="showSmsPopup = false">
+            <div class="close-sms" @click="closeSms">
               关闭
             </div>
           </div>
@@ -550,10 +558,12 @@
         showBindCardPopup: false,
         // 绑卡表单数据
         bindCardForm: {
-          cardType: '00',
-          certificateType: '0',
-          verifyCode: '',
+          accttype: '00',
+          idtype: '0',
         },
+        smscode: '',
+        //签约申请时返回
+        thpinfo: '',
         // 展示选择证件类型弹窗
         showIdTypePicker: false,
         // 证件类型list
@@ -562,26 +572,26 @@
         ],
         // 绑卡校验规则
         bindCardPattern: {
-          idNo: /^(^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$)|(^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])((\d{4})|\d{3}[X])$)$/,
-          verifyCode: /^\d{6}$/,
-          productNo: /^1[3456789]\d{9}$/,
-          bankCardNo: /^[0-9]{15,19}$/,
+          idno: /^(^[1-9]\d{7}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])\d{3}$)|(^[1-9]\d{5}[1-9]\d{3}((0\d)|(1[0-2]))(([0|1|2]\d)|3[0-1])((\d{4})|\d{3}[X])$)$/,
+          smscode: /^\d{6}$/,
+          mobile: /^1[3456789]\d{9}$/,
+          acctno: /^[0-9]{15,19}$/,
         },
         // 已绑卡列表
         bindCardList: [{
-          cardNo: '6217856000008784000',
+          cardNo: '6217856000008784001',
         },{
-          cardNo: '6217856000008784000'
+          cardNo: '6217856000008784002'
         },{
-          cardNo: '6217856000008784000'
+          cardNo: '6217856000008784003'
         },{
-          cardNo: '6217856000008784000'
+          cardNo: '6217856000008784004'
         },{
-          cardNo: '6217856000008784000'
+          cardNo: '6217856000008784005'
         },{
-          cardNo: '6217856000008784000'
+          cardNo: '6217856000008784006'
         },{
-          cardNo: '6217856000008784000'
+          cardNo: '6217856000008784007'
         }],
         // 绑卡发送验证码按钮文案
         bindCardVerifyText: '获取验证码',
@@ -621,6 +631,12 @@
           newVal = newVal > 20000 ? 20000 : newVal;
           this.form.money = newVal;
         },
+        showMoreCardList(newVal) {
+          if(newVal) {
+            const index = this.bindCardList.findIndex(i => i.cardNo === this.selectedCard.cardNo);
+            this.selectedCardIndex = index > -1 ? index : 0;
+          }
+        }
       },
       computed: {
         backBtn: function() {
@@ -637,14 +653,37 @@
           this.showMoreCardList = false;
         },
         confirmIdType(item) {
-          this.bindCardForm.certificateType = item.value
+          this.bindCardForm.idtype = item.value
           this.showIdTypePicker = false
         },
-        onSubmit(){
+        confirmBindCard(){
           // 调用接口 提交绑卡信息
           // 成功后 查询绑卡列表 关闭弹窗
-          this.queryBindCardList()
-          this.showBindCardPopup = false
+          var params = JSON.parse(JSON.stringify(this.bindCardForm))
+          var self =  this;
+          if (!this.thpinfo || !this.smscode) {
+            self.$notify('请先获取并正确填写验证码');
+            return
+          }
+          params.thpinfo = this.thpinfo;
+          params.smscode = this.smscode;
+          axios({
+            url: 'http://www.dubaoyu.com/appapi/?s=Partner.ConfirmCardBindByPid',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            params: params,
+          })
+            .then(function(res) {
+              var data = res.data.data;
+              if (data.code) {
+                return self.$notify(data.msg.retmsg || '提交失败');
+              }
+              this.queryBindCardList()
+              this.showBindCardPopup = false
+
+            }).finally(function() {
+            });
         },
         onFailed(errorInfo) {
           console.log(errorInfo, 'errorInfo')
@@ -718,9 +757,9 @@
             return this.$notify(ILLEGAL_TIPS);
           }
 
-          if (!this.form.orderno) {
-            return this.$notify('请传入商户订单号');
-          }
+          // if (!this.form.orderno) {
+          //   return this.$notify('请传入商户订单号');
+          // }
           // if (this.form.money < 100) {
           //   this.form.money = 100;
           //   return this.$notify('充值金额必须大于等于100元');
@@ -729,7 +768,7 @@
             if (!this.selectedCard) {
               return this.showBindCardDialog();
             }
-            this.createWeChatOrder();
+            this.getQuickPaySms()
             return;
           }
 
@@ -766,12 +805,33 @@
         },
         queryBindCardList(type) {
           // 查询已绑卡列表
-          if (!this.bindCardList.length && type === 'changePayType') {
-            this.showBindCardDialog();
+          var self = this;
+          var params = {
+            pid: parseInt(this.form.pid)
           }
-          if (this.bindCardList.length) {
-            this.selectedCard = this.bindCardList[this.selectedCardIndex]
-          }
+          axios({
+            url: 'http://www.dubaoyu.com/appapi/?s=Partner.GetBindBankCardByPid',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            params: params,
+          })
+            .then(function(res) {
+              var data = res.data.data;
+              if (data.code) {
+                return self.$notify(data.msg || '查询失败');
+              }
+
+              if (!data.info.length && type === 'changePayType') {
+                this.showBindCardDialog();
+                return
+              } else {
+                this.bindCardList = data.info;
+                this.selectedCard = this.bindCardList[this.selectedCardIndex]
+              }
+              
+            }).finally(function() {
+            });
         },
         showBindCardDialog() {
           vant.Dialog.alert({
@@ -789,19 +849,21 @@
           if (this.bindCardVerifyCodeStatus) {
             return;
           }
-          var verifyList = ['bankCardNo', 'idNo', 'username', 'productNo'];
-          if (this.bindCardForm.cardType === '02') {
-            verifyList.push('validityDate')
+          var verifyList = ['acctno', 'idno', 'acctname', 'mobile'];
+          if (this.bindCardForm.accttype === '02') {
+            verifyList.push('validdate')
           }
+
+          var self = this;
           
           for (var i = 0; i < verifyList.length;i++) {
             var code = verifyList[i]
             var verifyMap = {
-              'bankCardNo': '银行卡号',
-              'idNo': '身份证号',
-              'username': '户名',
-              'productNo': '手机号',
-              'validityDate': '有效期'
+              'acctno': '银行卡号',
+              'idno': '身份证号',
+              'acctname': '户名',
+              'mobile': '手机号',
+              'validdate': '有效期'
             }
             if (!this.bindCardForm[code]
               || (this.bindCardPattern[code] && !this.bindCardPattern[code].test(this.bindCardForm[verifyList[i]]))
@@ -811,63 +873,134 @@
               return
             }
           }
-          var i = 60;
-          this.bindCardVerifyText = `${i}S`;
-          this.bindCardVerifyCodeStatus = true;
-          this.bindCardSmsTimer = setInterval(() => {
-            i -= 1;
-            this.bindCardVerifyText = `${i}S`;
-            if (i <= 0) {
-              clearInterval(this.bindCardSmsTimer);
-              this.bindCardVerifyCodeStatus = false
-              this.bindCardVerifyText = '重新获取验证码';
-            }
-          }, 1000);
-        },
-        // 快捷支付申请发送短信验证码
-        createWeChatOrder() {
-          // 调用支付申请接口发送的短信验证码，展示验证码弹窗
-          this.getQuickPaySms()
+          var params = JSON.parse(JSON.stringify(this.bindCardForm))
+          params.pid = parseInt(this.form.pid)
+          axios({
+            url: 'http://www.dubaoyu.com/appapi/?s=Partner.ApplyCardBindByPid',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            params: params,
+          })
+            .then(function(res) {
+              var data = res.data.data;
+              if (data.code) {
+                return self.$notify(data.msg.retmsg || '查询失败');
+              }
+
+              var i = 60;
+              this.bindCardVerifyText = `${i}S`;
+              this.bindCardVerifyCodeStatus = true;
+              this.bindCardSmsTimer = setInterval(() => {
+                i -= 1;
+                this.bindCardVerifyText = `${i}S`;
+                if (i <= 0) {
+                  clearInterval(this.bindCardSmsTimer);
+                  this.bindCardVerifyCodeStatus = false
+                  this.bindCardVerifyText = '重新获取验证码';
+                }
+              }, 1000);
+
+            }).finally(function() {
+            });
+         
         },
         // 快捷支付下单
         confirmQuickPay() {
+          var self = this;
           if (!this.quickPaySms) {
-            return this.$toast.fail('请先输入验证码')
+            return self.$notify('请先输入验证码');
+          }
+          if (!this.quickPayThpinfo) {
+            return self.$notify('请先获取验证码');
           }
           // 调用快捷支付 确认支付接口
+          var params = JSON.parse(JSON.stringify(this.form))
+          params.pid = parseInt(this.form.pid)
+          params.smscode = this.quickPaySms
+          params.thpinfo = this.quickPayThpinfo
+          // 调用接口
+          axios({
+            url: 'http://www.dubaoyu.com/appapi/?s=Partner.ConfirmPayApplyByPid',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            params: params,
+          })
+            .then(function(res) {
+              var data = res.data.data;
+              if (data.code) {
+                return self.$notify(data.msg.retmsg || '支付失败，请重试');
+              }
+
+              // 成功展示提示
+              return this.$toast.loading({
+                message: '充值中',
+                forbidClick: true,
+                loadingType: 'spinner',
+              });
+            }).finally(function() {
+            });
         },
-        // 获取快捷支付验证码
+        // 快捷支付申请发送短信验证码
         getQuickPaySms() {
           if (this.quickPaySmsStatus) {
             return
           }
+          var self = this;
+          var params = JSON.parse(JSON.stringify(this.form))
+          params.pid = parseInt(this.form.pid)
           // 调用接口
-          // 成功与否都展示弹窗
-          this.showSmsPopup = true
-          var i = 3;
-          this.quickPaySmsText = `${i}S`;
-          this.quickPaySmsStatus = true;
-          this.quickSmsTimer = setInterval(() => {
-            i -= 1;
-            this.quickPaySmsText = `${i}S`;
-            if (i <= 0) {
-              clearInterval(this.quickSmsTimer);
-              this.quickPaySmsStatus = false
-              this.quickPaySmsText = '重新获取验证码';
-            }
-          }, 1000);
+          axios({
+            url: 'http://www.dubaoyu.com/appapi/?s=Partner.PayApplyByPid',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            params: params,
+          })
+            .then(function(res) {
+              var data = res.data.data;
+              if (data.code) {
+                return self.$notify(data.msg.retmsg || '短信验证码发送失败，请重试');
+              }
+
+              // 成功展示弹窗
+              this.showSmsPopup = true
+              var i = 60;
+              this.quickPaySmsText = `${i}S`;
+              this.quickPaySmsStatus = true;
+              this.quickSmsTimer = setInterval(() => {
+                i -= 1;
+                this.quickPaySmsText = `${i}S`;
+                if (i <= 0) {
+                  clearInterval(this.quickSmsTimer);
+                  this.quickPaySmsStatus = false
+                  this.quickPaySmsText = '重新获取验证码';
+                }
+              }, 1000);
+            }).finally(function() {
+            });
+         
         },
         closeBindPopup() {
           this.bindCardForm = {
-            cardType: '00',
-            certificateType: '0',
-            verifyCode: '',
+            accttype: '00',
+            idtype: '0',
           },
+          this.smscode = '',
+          this.thpinfo = ''
           this.showBindCardPopup = false
           this.bindCardSmsTimer && clearInterval(this.bindCardSmsTimer);
           this.bindCardSmsTimer = null
           this.bindCardVerifyCodeStatus = false
           this.bindCardVerifyText = '发送验证码';
+        },
+        closeSms() {
+          this.showSmsPopup = false
+          this.quickSmsTimer && clearInterval(this.quickSmsTimer);
+          this.quickSmsTimer = null
+          this.quickPaySmsStatus = false
+          this.quickPaySmsText = '发送验证码';
         }
       },
       mounted: function () {
