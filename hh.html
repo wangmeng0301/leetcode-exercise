@@ -402,6 +402,15 @@
               >
               </van-field>
               <van-field
+                v-if="bindCardForm.accttype==='02'"
+                v-model="bindCardForm.cvv2"
+                name="cvv2"
+                label="cvv2"
+                placeholder="年月日"
+                :rules="[{ required: true, message: '请填写cvv2' }]"
+              >
+              </van-field>
+              <van-field
                 v-model="smscode"
                 type="number"
                 name="验证码"
@@ -888,6 +897,8 @@
                 return self.$notify(data.msg.retmsg || '查询失败');
               }
 
+              this.thpinfo = data.info[0].thpinfo
+
               var i = 60;
               this.bindCardVerifyText = `${i}S`;
               this.bindCardVerifyCodeStatus = true;
@@ -963,6 +974,8 @@
               if (data.code) {
                 return self.$notify(data.msg.retmsg || '短信验证码发送失败，请重试');
               }
+
+              this.quickPayThpinfo = data.info[0].thpinfo
 
               // 成功展示弹窗
               this.showSmsPopup = true
