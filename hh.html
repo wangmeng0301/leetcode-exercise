@@ -247,14 +247,14 @@
             <i v-if="form.paytype === 'alipay'" class="iconfont jm-checked form-option-radio"></i>
             <i v-else class="iconfont jm-unchecked form-option-radio"></i>
           </div>
-          <div @click="changePayType('wechat')" class="form-option" :class="{active: form.paytype === 'wechat'}">
+          <div @click="changePayType('kuaijie')" class="form-option" :class="{active: form.paytype === 'kuaijie'}">
             <i class="iconfont jm-yinlian form-option-icon"></i>
             <div class="form-option-value">快捷支付</div>
-            <i v-if="form.paytype === 'wechat'" class="iconfont jm-checked form-option-radio"></i>
+            <i v-if="form.paytype === 'kuaijie'" class="iconfont jm-checked form-option-radio"></i>
             <i v-else class="iconfont jm-unchecked form-option-radio"></i>
           </div>
         </div>
-        <div v-if="form.paytype === 'wechat'" class="card-list-wraper">
+        <div v-if="form.paytype === 'kuaijie'" class="card-list-wraper">
           <div class="card-header">
             <div class="card-title">
               已选卡
@@ -690,6 +690,7 @@
               }
               this.queryBindCardList()
               this.showBindCardPopup = false
+              self.$notify({type: 'success', message: '绑卡成功'});
 
             }).finally(function() {
             });
@@ -699,7 +700,7 @@
         },
         // 修改支付方式
         changePayType: function(payType) {
-          if (payType === 'wechat') {
+          if (payType === 'kuaijie') {
             this.queryBindCardList('changePayType');
           }
           this.form.paytype = payType;
@@ -773,7 +774,7 @@
           //   this.form.money = 100;
           //   return this.$notify('充值金额必须大于等于100元');
           // }
-          if (this.form.paytype === 'wechat') {
+          if (this.form.paytype === 'kuaijie') {
             if (!this.selectedCard) {
               return this.showBindCardDialog();
             }
@@ -930,6 +931,7 @@
           params.pid = parseInt(this.form.pid)
           params.smscode = this.quickPaySms
           params.thpinfo = this.quickPayThpinfo
+          params.agreeid = this.selectedCard.agreeid
           // 调用接口
           axios({
             url: 'http://www.dubaoyu.com/appapi/?s=Partner.ConfirmPayApplyByPid',
@@ -944,12 +946,9 @@
                 return self.$notify(data.msg.retmsg || '支付失败，请重试');
               }
 
-              // 成功展示提示
-              return this.$toast.loading({
-                message: '充值中',
-                forbidClick: true,
-                loadingType: 'spinner',
-              });
+              self.$notify({type: 'success', message: '支付成功'});
+
+
             }).finally(function() {
             });
         },
@@ -961,6 +960,7 @@
           var self = this;
           var params = JSON.parse(JSON.stringify(this.form))
           params.pid = parseInt(this.form.pid)
+          params.agreeid = this.selectedCard.agreeid
           // 调用接口
           axios({
             url: 'http://www.dubaoyu.com/appapi/?s=Partner.PayApplyByPid',
